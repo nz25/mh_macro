@@ -22,3 +22,7 @@ Public Const TableNameCellAddress As String = "A2"
 
 Public Letters(1 To 52) As String
 
+Public Enum SignificanceTestType
+    Normal = 1
+    Linda = 2
+End Enum

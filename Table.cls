@@ -233,10 +233,12 @@ End Sub
 
 Public Sub HighlightSignificances()
     
-    If Me.BaseIn = "Row" Or Me.BaseIn = "Column" Then
-        If Me.SigTestVs = "Ref" Then
-            HighlightSignficancesVsRef
-        End If
+    Dim testType As SignificanceTestType
+    
+    If Me.BaseIn = "Row" And Me.SigTestVs = "Ref" Then
+            HighlightSignficancesVsRef SignificanceTestType.Linda
+    ElseIf Me.BaseIn = "Column" And Me.SigTestVs = "Ref" Then
+            HighlightSignficancesVsRef SignificanceTestType.Normal
     ElseIf Me.BaseIn = "SubTable" Then
         Dim st As SubTable
         For Each st In Me.SubTables
@@ -248,11 +250,11 @@ Public Sub HighlightSignificances()
     
 End Sub
 
-Private Sub HighlightSignficancesVsRef()
+Private Sub HighlightSignficancesVsRef(testType As SignificanceTestType)
 
     Dim i As Integer, j As Integer
     Dim x1 As Double, x2 As Double, n1 As Double, n2 As Double
-
+   
     For i = 1 To Me.TestRange.Rows.Count
         For j = 1 To Me.TestRange.Columns.Count
     
@@ -268,7 +270,7 @@ Private Sub HighlightSignficancesVsRef()
                 x2 = Me.TestRange.Cells(i, j).Value / 100 'test value
             End If
             
-            If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2)) Then
+            If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2, testType)) Then
                 If x2 > x1 Then
                     Me.TestRange.Cells(i, j).Font.Color = Globals.ColorSignificantlyHigher
                 Else

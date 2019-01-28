@@ -1,7 +1,7 @@
 Attribute VB_Name = "Stats"
 Option Explicit
 
-Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As Double) As Double
+Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As Double, testType As SignificanceTestType) As Double
 
     'n1 - base 1, x1 - value 1, n2 = base 2, x2 - value 2
     'x1 and x2 values should be between 0 and 1, for example 45%
@@ -12,11 +12,17 @@ Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As D
     'Special cases resulting in errors -> should be NOT significant
     If x1 + x2 = 0 Or x1 = x2 _
         Or n1 < Globals.BaseTooLow Or n2 < Globals.BaseTooLow _
-        Or (x1 = 1 And x2 = 0) Or (x1 = 0 And x2 = 1) _
-        Or (x1 < (1 - Globals.SignificanceLevel) And x2 < (1 - Globals.SignificanceLevel)) _
-        Or (x1 > Globals.SignificanceLevel And x2 > Globals.SignificanceLevel) Then 'not significant
+        Or (x1 = 1 And x2 = 0) Or (x1 = 0 And x2 = 1) Then 'not significant
             GetProbability = 1
             Exit Function
+    End If
+    
+    'New signficance rule (email from Bertram 7.3.17)
+    If testType = SignificanceTestType.Linda Then
+        If x1 * n1 < Globals.BaseTooLow Then
+            GetProbability = 1
+            Exit Function
+        End If
     End If
     
     Dim a As Double, b As Double, c As Double, d As Double, f As Double, x As Double
@@ -41,9 +47,7 @@ Public Function GetProbabilityRef(n1 As Double, x1 As Double, ref As Double) As 
     End If
     
     'Special cases resulting in errors -> should be NOT significant
-    If x1 = ref Or x1 = 1 Or x1 = 0 Or n1 < Globals.BaseTooLow _
-        Or (x1 < (1 - Globals.SignificanceLevel) And ref < (1 - Globals.SignificanceLevel)) _
-        Or (x1 > Globals.SignificanceLevel And ref > Globals.SignificanceLevel) Then 'not significant
+    If x1 = ref Or x1 = 1 Or x1 = 0 Or n1 < Globals.BaseTooLow Then 'not significant
             GetProbabilityRef = 1
             Exit Function
     End If

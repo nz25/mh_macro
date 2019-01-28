@@ -57,7 +57,7 @@ Private Sub HighlightSignficancesVsRef()
                 n2 = Me.BaseRange.Cells(1, j).Value 'test base
                 x2 = Me.TestRange.Cells(i, j).Value / 100 'test value
             
-                If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2)) Then
+                If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2, SignificanceTestType.Linda)) Then
                     If x2 > x1 Then
                         Me.TestRange.Cells(i, j).Font.Color = Globals.ColorSignificantlyHigher
                     Else
@@ -126,7 +126,7 @@ Private Sub HighlightSignificancesVsAll()
                     For k = 1 To Me.TestRange.Columns.Count 'reference columns
                         n2 = Me.BaseRange.Cells(1, k).Value
                         x2 = Me.TestRange.Cells(i, k).Value / 100
-                        If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2)) Then
+                        If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2, SignificanceTestType.Normal)) Then
                             Dim key As String
                             key = GetHeaderKey(k)
                             If x1 > x2 Then
