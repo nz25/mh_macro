@@ -45,15 +45,18 @@ Private Sub CheckTableNames()
     
     For i = 1 To ActiveWorkbook.Worksheets.Count
         TableName = ActiveWorkbook.Worksheets(i).Range(Globals.TableNameCellAddress)
-        tableFound = False
-        For j = 2 To Main.TableCount + 1
-            If TableName = ThisWorkbook.Worksheets("Index").Cells(j, 1) Then
-                tableFound = True
-                ThisWorkbook.Worksheets("index").Cells(j, 2) = ActiveWorkbook.Worksheets(i).Name
-            End If
-        Next j
-        
-        If Not tableFound Then MsgBox "Unknown Table: " + TableName
+        If Len(TableName) > 31 Then
+            MsgBox "Too many characters in the table name: " + TableName + vbCrLf + "Please shorten table name"
+        Else
+            tableFound = False
+            For j = 2 To Main.TableCount + 1
+                If TableName = ThisWorkbook.Worksheets("Index").Cells(j, 1) Then
+                    tableFound = True
+                    ThisWorkbook.Worksheets("index").Cells(j, 2) = ActiveWorkbook.Worksheets(i).Name
+                End If
+            Next j
+            If Not tableFound Then MsgBox "Unknown Table: " + TableName
+        End If
     Next i
     
 End Sub
