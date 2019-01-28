@@ -10,9 +10,13 @@ Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As D
     End If
     
     'Special cases resulting in errors -> should be NOT significant
-    If x1 + x2 = 0 Or x1 = x2 Or n1 < Globals.BaseTooLow Or n2 < Globals.BaseTooLow Or (x1 = 1 And x2 = 0) Or (x1 = 0 And x2 = 1) Then  'not significant
-        GetProbability = 1
-        Exit Function
+    If x1 + x2 = 0 Or x1 = x2 _
+        Or n1 < Globals.BaseTooLow Or n2 < Globals.BaseTooLow _
+        Or (x1 = 1 And x2 = 0) Or (x1 = 0 And x2 = 1) _
+        Or (x1 < (1 - Globals.SignificanceLevel) And x2 < (1 - Globals.SignificanceLevel)) _
+        Or (x1 > Globals.SignificanceLevel And x2 > Globals.SignificanceLevel) Then 'not significant
+            GetProbability = 1
+            Exit Function
     End If
     
     Dim a As Double, b As Double, c As Double, d As Double, f As Double, x As Double
@@ -37,9 +41,11 @@ Public Function GetProbabilityRef(n1 As Double, x1 As Double, ref As Double) As 
     End If
     
     'Special cases resulting in errors -> should be NOT significant
-    If x1 = ref Or x1 = 1 Or x1 = 0 Or n1 < Globals.BaseTooLow Then    'not significant
-        GetProbabilityRef = 1
-        Exit Function
+    If x1 = ref Or x1 = 1 Or x1 = 0 Or n1 < Globals.BaseTooLow _
+        Or (x1 < (1 - Globals.SignificanceLevel) And ref < (1 - Globals.SignificanceLevel)) _
+        Or (x1 > Globals.SignificanceLevel And ref > Globals.SignificanceLevel) Then 'not significant
+            GetProbabilityRef = 1
+            Exit Function
     End If
 
     Dim a As Double, b As Double, f As Double, x As Double

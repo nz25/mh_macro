@@ -19,6 +19,7 @@ Public SigTestVs As String
 Public SigText As String
 Public HasDelta As Boolean
 Public UseFilter As Boolean
+Public OpenEnds As Boolean
 
 Public Worksheet As Worksheet
 
@@ -62,6 +63,7 @@ Public Sub Initialize(index As Range, ws As Worksheet)
     Me.SigText = index.Columns(7)
     Me.HasDelta = index.Columns(8)
     Me.UseFilter = index.Columns(9)
+    Me.OpenEnds = index.Columns(10)
 
     Set Me.Worksheet = ws
     
@@ -153,7 +155,11 @@ End Sub
 
 Public Sub PreFormatting()
     
-    ResetFormatting
+    With Me.Worksheet.UsedRange
+        .Interior.Pattern = xlNone
+        .Font.Color = XlRgbColor.rgbBlack
+        .Font.Italic = False
+    End With
     
     Me.Worksheet.Name = Left(Me.HeaderRange.Rows(2), 31)
     Me.HeaderRange.Rows(Me.HeaderRange.Rows.Count).Font.Bold = True
@@ -161,8 +167,12 @@ Public Sub PreFormatting()
     With Me.Worksheet.UsedRange.Resize(Me.Worksheet.UsedRange.Rows.Count + 1)
         .Font.Name = Globals.Font
         .NumberFormat = "0"
-        .VerticalAlignment = xlCenter
+        '.VerticalAlignment = xlCenter
     End With
+    
+    If Me.OpenEnds Then
+        'Formatting open-ends?
+    End If
     
     Me.TitleRange.Columns.AutoFit
     Me.BannerRange.Font.Size = 8
@@ -178,13 +188,6 @@ Public Sub PreFormatting()
     
 End Sub
 
-Private Sub ResetFormatting()
-    With Me.Worksheet.UsedRange
-        .Interior.Pattern = xlNone
-        .Font.Color = XlRgbColor.rgbBlack
-        .Font.Italic = False
-    End With
-End Sub
 
 Public Sub WriteLegend()
 
