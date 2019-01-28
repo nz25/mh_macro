@@ -12,13 +12,13 @@ Implements ITable
 
 Public TableName As String
 Public worksheetName As String
-Public HeaderRows As Integer
 Public TitleLevels As Integer
 Public BannerLevels As Integer
 Public BaseIn As String
 Public SigTestVs As String
 Public SigText As String
 Public HasDelta As Boolean
+Public UseFilter As Boolean
 
 Public Worksheet As Worksheet
 
@@ -30,6 +30,7 @@ Public HeaderRange As Range
 Public LegendRange As Range
 Public TitleRange As Range
 Public BannerRange As Range
+Public AutoFilterRange As Range
 
 Public SubTables As Collection
 Public DeltaTable As DeltaTable
@@ -43,7 +44,7 @@ Public Function ITable_GetBannerRange() As Range
 End Function
 
 Public Property Get FirstDataRow() As Integer
-    FirstDataRow = Me.HeaderRows + Me.BannerLevels * 2 + 2
+    FirstDataRow = Me.HeaderRange.Rows.Count + Me.BannerLevels * 2 + 2
 End Property
 
 Public Property Get FirstDataColumn() As Integer
@@ -54,13 +55,13 @@ Public Sub Initialize(index As Range, ws As Worksheet)
 
     Me.TableName = index.Columns(1)
     Me.worksheetName = index.Columns(2)
-    Me.HeaderRows = index.Columns(3)
-    Me.TitleLevels = index.Columns(4)
-    Me.BannerLevels = index.Columns(5)
-    Me.BaseIn = index.Columns(6)
-    Me.SigTestVs = index.Columns(7)
-    Me.SigText = index.Columns(8)
-    Me.HasDelta = index.Columns(9)
+    Me.TitleLevels = index.Columns(3)
+    Me.BannerLevels = index.Columns(4)
+    Me.BaseIn = index.Columns(5)
+    Me.SigTestVs = index.Columns(6)
+    Me.SigText = index.Columns(7)
+    Me.HasDelta = index.Columns(8)
+    Me.UseFilter = index.Columns(9)
 
     Set Me.Worksheet = ws
     
@@ -69,11 +70,11 @@ Public Sub Initialize(index As Range, ws As Worksheet)
     lastRow = Me.Worksheet.UsedRange.Rows.Count
     lastColumn = Me.Worksheet.UsedRange.Columns.Count
     
+    Set Me.HeaderRange = Me.Worksheet.Cells(1, 1).CurrentRegion
     Set Me.DataRange = Me.Worksheet.Range(Me.Worksheet.Cells(Me.FirstDataRow, Me.FirstDataColumn), Me.Worksheet.Cells(lastRow, lastColumn))
     Set Me.TitleRange = Me.DataRange.Offset(0, -1).Columns(1)
     Set Me.BannerRange = Me.DataRange.Offset(-1, 0).Rows(1)
-    Set Me.HeaderRange = Me.Worksheet.Range(Me.Worksheet.Cells(1, 1), Me.Worksheet.Cells(Me.HeaderRows, 1))
-    Set Me.LegendRange = Me.HeaderRange.Offset(0, 2).Resize(4)
+    Set Me.LegendRange = Me.HeaderRange.Offset(0, 3).Resize(4)
     
     If Me.BaseIn = "Row" Then
         Set Me.BaseRange = Me.DataRange.Rows(1)
@@ -154,12 +155,12 @@ Public Sub PreFormatting()
     
     ResetFormatting
     
-    Me.Worksheet.name = Left(Me.HeaderRange.Rows(2), 31)
-    Me.HeaderRange.Rows(Me.HeaderRows).Font.Bold = True
+    Me.Worksheet.Name = Left(Me.HeaderRange.Rows(2), 31)
+    Me.HeaderRange.Rows(Me.HeaderRange.Rows.Count).Font.Bold = True
     
     With Me.Worksheet.UsedRange.Resize(Me.Worksheet.UsedRange.Rows.Count + 1)
-        .Font.name = Globals.Font
-        .numberFormat = "0"
+        .Font.Name = Globals.Font
+        .NumberFormat = "0"
         .VerticalAlignment = xlCenter
     End With
     
@@ -292,6 +293,13 @@ Public Sub PostFormatting()
     Next c
     
     If Me.HasDelta Then Me.DeltaTable.CalculateDeltas
+    
+    If Me.UseFilter Then
+        Set Me.AutoFilterRange = Me.BannerRange.Cells(Me.BannerRange.Rows.Count, 1).Offset(0, -1)
+        Me.AutoFilterRange.Offset(0, -1).Resize(1, 2).AutoFilter
+        Me.AutoFilterRange = "Show/hide rows with filter"
+        Me.AutoFilterRange.Font.Italic = True
+    End If
     
     FixWindow
     

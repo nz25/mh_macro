@@ -91,7 +91,12 @@ Public Sub PreFormatting()
     Me.BannerRange.HorizontalAlignment = xlCenter
     Me.BannerRange.WrapText = True
     Me.DataRange.HorizontalAlignment = xlCenter
-
+    
+    Dim st As SubTable
+    For Each st In Me.SubTables
+        st.TestRange.NumberFormat = "+0;-0;0"
+    Next st
+    
 End Sub
 
 Public Sub HighlightBases()

@@ -2,10 +2,11 @@ Attribute VB_Name = "Main"
 Option Explicit
 
 Public Tables As Collection
+Public TableCount As Integer
 
 Public Sub Start()
 
-    If ThisWorkbook.name = ActiveWorkbook.name Then
+    If ThisWorkbook.Name = ActiveWorkbook.Name Then
         MsgBox ("Please select tables you want to modify")
         Exit Sub
     End If
@@ -33,7 +34,8 @@ Private Sub Initialize()
 
     Set Main.Tables = New Collection
     
-    ThisWorkbook.Worksheets("Index").Range("B2:B" & Globals.TableCount + 1).ClearContents
+    Main.TableCount = ThisWorkbook.Worksheets("Index").Cells(1, 1).CurrentRegion.Rows.Count - 1
+    ThisWorkbook.Worksheets("Index").Range("B2:B" & Main.TableCount + 1).ClearContents
 
 End Sub
 
@@ -44,10 +46,10 @@ Private Sub CheckTableNames()
     For i = 1 To ActiveWorkbook.Worksheets.Count
         TableName = ActiveWorkbook.Worksheets(i).Range(Globals.TableNameCellAddress)
         tableFound = False
-        For j = 2 To Globals.TableCount + 1
+        For j = 2 To Main.TableCount + 1
             If TableName = ThisWorkbook.Worksheets("Index").Cells(j, 1) Then
                 tableFound = True
-                ThisWorkbook.Worksheets("index").Cells(j, 2) = ActiveWorkbook.Worksheets(i).name
+                ThisWorkbook.Worksheets("index").Cells(j, 2) = ActiveWorkbook.Worksheets(i).Name
             End If
         Next j
         
@@ -60,7 +62,7 @@ Private Sub ReadTablesInfo()
 
     Dim i As Integer, worksheetName As String
     
-    For i = 2 To Globals.TableCount + 1
+    For i = 2 To Main.TableCount + 1
         worksheetName = ThisWorkbook.Worksheets("Index").Cells(i, 2)
         If worksheetName <> "" Then
             Dim t As MH_Tables.Table

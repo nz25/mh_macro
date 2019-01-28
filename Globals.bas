@@ -3,8 +3,6 @@ Option Explicit
 
 'GLOBAL SETTINGS
 
-Public Const TableCount As Integer = 47
-
 Public Const BaseLow As Integer = 80
 Public Const BaseTooLow As Integer = 60
 Public Const SignificanceLevel As Double = 0.95
