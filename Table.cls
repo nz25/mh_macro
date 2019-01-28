@@ -20,6 +20,7 @@ Public SigText As String
 Public HasDelta As Boolean
 Public UseFilter As Boolean
 Public OpenEnds As Boolean
+Public TabColor As Long
 
 Public Worksheet As Worksheet
 
@@ -64,7 +65,8 @@ Public Sub Initialize(index As Range, ws As Worksheet)
     Me.HasDelta = index.Columns(8)
     Me.UseFilter = index.Columns(9)
     Me.OpenEnds = index.Columns(10)
-
+    Me.TabColor = index.Columns(1).Interior.Color
+    
     Set Me.Worksheet = ws
     
     Dim lastRow As Integer, lastColumn As Integer
@@ -174,6 +176,7 @@ Public Sub PreFormatting()
     End With
     
     Me.Worksheet.Name = Left(Me.HeaderRange.Rows(2), 31)
+    Me.Worksheet.Tab.Color = Me.TabColor
     Me.HeaderRange.Rows(Me.HeaderRange.Rows.Count).Font.Bold = True
     
     With Me.Worksheet.UsedRange.Resize(Me.Worksheet.UsedRange.Rows.Count + 1)
