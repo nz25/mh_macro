@@ -78,20 +78,32 @@ Public Sub Initialize(index As Range, ws As Worksheet)
     Set Me.BannerRange = Me.DataRange.Offset(-1, 0).Rows(1)
     Set Me.LegendRange = Me.HeaderRange.Offset(0, 3).Resize(4)
     
-    If Me.BaseIn = "Row" Then
-        Set Me.BaseRange = Me.DataRange.Rows(1)
-        If Me.SigTestVs = "Ref" Then
-            Set Me.ReferenceRange = Me.DataRange.Columns(1)
-            Set Me.TestRange = Me.DataRange.Offset(1, 1).Resize(Me.DataRange.Rows.Count - 1, Me.DataRange.Columns.Count - 1)
+    If Me.SigTestVs = "Trend" Then
+        If Me.BaseIn = "Row" Then
+            Set Me.BaseRange = Me.DataRange.Rows(1)
+            Set Me.TestRange = Me.DataRange.Offset(1, 0).Resize(Me.DataRange.Rows.Count - 1)
+        ElseIf Me.BaseIn = "Column" Then
+            Set Me.BaseRange = Me.DataRange.Resize(, Globals.NumberOfWaves)
+            Set Me.TestRange = Me.DataRange.Offset(0, Globals.NumberOfWaves).Resize(, Me.DataRange.Columns.Count - Globals.NumberOfWaves)
+        ElseIf Me.BaseIn = "SubTable" Then
+            'All ranges are defined in subtable class
         End If
-    ElseIf Me.BaseIn = "Column" Then
-        Set Me.BaseRange = Me.DataRange.Columns(1)
-        If Me.SigTestVs = "Ref" Then
-            Set Me.ReferenceRange = Me.DataRange.Rows(1)
-            Set Me.TestRange = Me.DataRange.Offset(1, 1).Resize(Me.DataRange.Rows.Count - 1, Me.DataRange.Columns.Count - 1)
+    Else
+        If Me.BaseIn = "Row" Then
+            Set Me.BaseRange = Me.DataRange.Rows(1)
+            If Me.SigTestVs = "Ref" Then
+                Set Me.ReferenceRange = Me.DataRange.Columns(1)
+                Set Me.TestRange = Me.DataRange.Offset(1, 1).Resize(Me.DataRange.Rows.Count - 1, Me.DataRange.Columns.Count - 1)
+            End If
+        ElseIf Me.BaseIn = "Column" Then
+            Set Me.BaseRange = Me.DataRange.Columns(1)
+            If Me.SigTestVs = "Ref" Then
+                Set Me.ReferenceRange = Me.DataRange.Rows(1)
+                Set Me.TestRange = Me.DataRange.Offset(1, 1).Resize(Me.DataRange.Rows.Count - 1, Me.DataRange.Columns.Count - 1)
+            End If
+        ElseIf Me.BaseIn = "SubTable" Then
+            'All ranges are defined in subtable class
         End If
-    ElseIf Me.BaseIn = "SubTable" Then
-        'All ranges are defined in subtable class
     End If
     
     If Me.HasDelta Then
@@ -235,15 +247,15 @@ Public Sub HighlightSignificances()
     
     Dim testType As SignificanceTestType
     
-    If Me.BaseIn = "Row" And Me.SigTestVs = "Ref" Then
-            HighlightSignficancesVsRef SignificanceTestType.Linda
-    ElseIf Me.BaseIn = "Column" And Me.SigTestVs = "Ref" Then
-            HighlightSignficancesVsRef SignificanceTestType.Normal
-    ElseIf Me.BaseIn = "SubTable" Then
+    If Me.BaseIn = "SubTable" Then
         Dim st As SubTable
         For Each st In Me.SubTables
             st.HighlightSignificances
         Next st
+    ElseIf Me.SigTestVs = "Ref" Then
+        HighlightSignficancesVsRef SignificanceTestType.Linda
+    ElseIf Me.SigTestVs = "Trend" Then
+        HighlightSignificancesTrend
     End If
     
     If Me.HasDelta Then Me.DeltaTable.HighlightSignificances
@@ -278,6 +290,44 @@ Private Sub HighlightSignficancesVsRef(testType As SignificanceTestType)
                 End If
             End If
         
+        Next j
+    Next i
+    
+End Sub
+
+Private Sub HighlightSignificancesTrend()
+
+    Dim i As Integer, j As Integer, currentWave As Integer
+    Dim x1 As Double, x2 As Double, n1 As Double, n2 As Double
+
+    For i = 1 To Me.TestRange.Rows.Count
+        For j = 1 To Me.TestRange.Columns.Count
+        
+            currentWave = j Mod Globals.NumberOfWaves
+            If currentWave = 0 Then currentWave = Globals.NumberOfWaves
+        
+            If currentWave > 1 Then 'conduct the test starting from the 2nd wave (skip the 1st wave)
+        
+                If Me.BaseIn = "Row" Then
+                    n1 = Me.BaseRange.Cells(1, j - 1).Value 'reference base
+                    x1 = Me.TestRange.Cells(i, j - 1).Value / 100 'reference value
+                    n2 = Me.BaseRange.Cells(1, j).Value 'test base
+                    x2 = Me.TestRange.Cells(i, j).Value / 100 'test value
+                ElseIf Me.BaseIn = "Column" Then
+                    n1 = Me.BaseRange.Cells(i, currentWave - 1).Value 'reference base
+                    x1 = Me.TestRange.Cells(i, j - 1).Value / 100 'reference value
+                    n2 = Me.BaseRange.Cells(i, currentWave).Value 'test base
+                    x2 = Me.TestRange.Cells(i, j).Value / 100 'test value
+                End If
+                
+                If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2, SignificanceTestType.Trend)) Then
+                    If x2 > x1 Then
+                        Me.TestRange.Cells(i, j).Font.Color = Globals.ColorSignificantlyHigher
+                    Else
+                        Me.TestRange.Cells(i, j).Font.Color = Globals.ColorSignificantlyLower
+                    End If
+                End If
+            End If
         Next j
     Next i
     

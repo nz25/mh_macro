@@ -17,9 +17,14 @@ Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As D
             Exit Function
     End If
     
-    'New signficance rule (email from Bertram 7.3.17)
+    'New signficance rule (emails from Bertram 7.3.17, 26.4.17)
     If testType = SignificanceTestType.Linda Then
         If x1 * n1 < Globals.BaseTooLow Then
+            GetProbability = 1
+            Exit Function
+        End If
+    ElseIf testType = SignificanceTestType.Trend Then
+        If x1 * n1 < Globals.BaseTooLow Or x2 * n2 < Globals.BaseTooLow Then
             GetProbability = 1
             Exit Function
         End If

@@ -20,9 +20,12 @@ Public Const DataRangeErrorCode As Integer = 1003
 Public Const Font As String = "Arial Narrow"
 Public Const TableNameCellAddress As String = "A2"
 
+Public Const NumberOfWaves = 2
+
 Public Letters(1 To 52) As String
 
 Public Enum SignificanceTestType
     Normal = 1
     Linda = 2
+    Trend = 3
 End Enum
