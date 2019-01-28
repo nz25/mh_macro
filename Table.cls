@@ -80,7 +80,7 @@ Public Sub Initialize(index As Range, ws As Worksheet)
     Set Me.BannerRange = Me.DataRange.Offset(-1, 0).Rows(1)
     Set Me.LegendRange = Me.HeaderRange.Offset(0, 3).Resize(4)
     
-    If Me.SigTestVs = "Trend" Then
+    If Me.SigTestVs = "Trend" Or Me.SigTestVs = "2Columns" Then
         If Me.BaseIn = "Row" Then
             Set Me.BaseRange = Me.DataRange.Rows(1)
             Set Me.TestRange = Me.DataRange.Offset(1, 0).Resize(Me.DataRange.Rows.Count - 1)
@@ -259,6 +259,8 @@ Public Sub HighlightSignificances()
         HighlightSignficancesVsRef SignificanceTestType.Linda
     ElseIf Me.SigTestVs = "Trend" Then
         HighlightSignificancesTrend
+    ElseIf Me.SigTestVs = "2Columns" Then
+        HighlightSignificances2Columns
     End If
     
     If Me.HasDelta Then Me.DeltaTable.HighlightSignificances
@@ -335,6 +337,35 @@ Private Sub HighlightSignificancesTrend()
     Next i
     
 End Sub
+
+Private Sub HighlightSignificances2Columns()
+
+    Dim i As Integer, j As Integer
+    Dim x1 As Double, x2 As Double, n1 As Double, n2 As Double
+
+    For i = 1 To Me.TestRange.Rows.Count
+        For j = 1 To Me.TestRange.Columns.Count
+        
+            If j Mod 2 = 0 Then 'conduct the test only for 2nd column
+        
+                n1 = Me.BaseRange.Cells(1, j - 1).Value 'reference base
+                x1 = Me.TestRange.Cells(i, j - 1).Value / 100 'reference value
+                n2 = Me.BaseRange.Cells(1, j).Value 'test base
+                x2 = Me.TestRange.Cells(i, j).Value / 100 'test value
+            
+                If Stats.IsSignificant(Globals.SignificanceLevel, Stats.GetProbability(n1, x1, n2, x2, SignificanceTestType.Trend)) Then
+                    If x2 > x1 Then
+                        Me.TestRange.Cells(i, j).Font.Color = Globals.ColorSignificantlyHigher
+                    Else
+                        Me.TestRange.Cells(i, j).Font.Color = Globals.ColorSignificantlyLower
+                    End If
+                End If
+            End If
+        Next j
+    Next i
+    
+End Sub
+
 
 Public Sub PostFormatting()
 
