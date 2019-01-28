@@ -71,7 +71,13 @@ Private Sub ReadTablesInfo()
             Dim t As MH_Tables.Table
             Set t = New MH_Tables.Table
             t.Initialize ThisWorkbook.Worksheets("Index").Rows(i), ActiveWorkbook.Worksheets(worksheetName)
-            Main.Tables.Add t
+            If t.TableIsEmpty Then
+                Application.DisplayAlerts = False
+                t.Worksheet.Delete
+                Application.DisplayAlerts = True
+            Else
+                Main.Tables.Add t
+            End If
         End If
     Next i
 

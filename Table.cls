@@ -37,6 +37,8 @@ Public AutoFilterRange As Range
 Public SubTables As Collection
 Public DeltaTable As DeltaTable
 
+Public TableIsEmpty As Boolean
+
 Public Function ITable_GetSigTestVs() As String
     ITable_GetSigTestVs = Me.SigTestVs
 End Function
@@ -80,6 +82,9 @@ Public Sub Initialize(index As Range, ws As Worksheet)
     Set Me.BannerRange = Me.DataRange.Offset(-1, 0).Rows(1)
     Set Me.LegendRange = Me.HeaderRange.Offset(0, 3).Resize(4)
     
+    If Me.DataRange.Rows.Count <= 1 Then Me.TableIsEmpty = True
+    If Me.TableIsEmpty Then Exit Sub
+        
     If Me.SigTestVs = "Trend" Or Me.SigTestVs = "2Columns" Then
         If Me.BaseIn = "Row" Then
             Set Me.BaseRange = Me.DataRange.Rows(1)
