@@ -24,7 +24,7 @@ Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As D
             Exit Function
         End If
     ElseIf testType = SignificanceTestType.Trend Then
-        If x1 * n1 < Globals.BaseTooLow And x2 * n2 < Globals.BaseTooLow Then
+        If Round(x1 * n1, 0) < Globals.BaseTooLow And Round(x2 * n2, 0) < Globals.BaseTooLow Then
             GetProbability = 1
             Exit Function
         End If
