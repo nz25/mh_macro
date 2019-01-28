@@ -25,6 +25,10 @@ Public BannerRange As Range
 
 Public SubTables As Collection
 
+Public Function ITable_GetSigLevel() As Double
+    ITable_GetSigLevel = ParentTable.SigLevel
+End Function
+
 Public Function ITable_GetSigTestVs() As String
     ITable_GetSigTestVs = "Delta"
 End Function

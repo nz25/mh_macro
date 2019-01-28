@@ -36,6 +36,8 @@ Private Sub Initialize()
     
     Main.TableCount = ThisWorkbook.Worksheets("Index").Cells(1, 1).CurrentRegion.Rows.Count - 1
     ThisWorkbook.Worksheets("Index").Range("B2:B" & Main.TableCount + 1).ClearContents
+    
+    Globals.NumberOfWaves = ThisWorkbook.Worksheets("Index").Cells(1, 13)
 
 End Sub
 

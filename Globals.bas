@@ -5,7 +5,6 @@ Option Explicit
 
 Public Const BaseLow As Integer = 80
 Public Const BaseTooLow As Integer = 60
-Public Const SignificanceLevel As Double = 0.95
 Public Const SignificanceCharToUseIfBaseIsTooLow As String = "*"
 
 Public Const ColorBaseLow As Long = 49407
@@ -20,7 +19,7 @@ Public Const DataRangeErrorCode As Integer = 1003
 Public Const Font As String = "Arial Narrow"
 Public Const TableNameCellAddress As String = "A2"
 
-Public Const NumberOfWaves = 2
+Public NumberOfWaves As Integer
 
 Public Letters(1 To 52) As String
 

@@ -19,3 +19,7 @@ End Function
 Public Function GetBannerRange() As Range
 
 End Function
+
+Public Function GetSigLevel() As Double
+
+End Function
