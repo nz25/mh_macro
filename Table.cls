@@ -8,14 +8,17 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
+Implements ITable
 
 Public TableName As String
-Public WorksheetName As String
+Public worksheetName As String
 Public HeaderRows As Integer
 Public TitleLevels As Integer
 Public BannerLevels As Integer
 Public BaseIn As String
 Public SigTestVs As String
+Public SigText As String
+Public HasDelta As Boolean
 
 Public Worksheet As Worksheet
 
@@ -29,6 +32,15 @@ Public TitleRange As Range
 Public BannerRange As Range
 
 Public SubTables As Collection
+Public DeltaTable As DeltaTable
+
+Public Function ITable_GetSigTestVs() As String
+    ITable_GetSigTestVs = Me.SigTestVs
+End Function
+
+Public Function ITable_GetBannerRange() As Range
+    Set ITable_GetBannerRange = Me.BannerRange
+End Function
 
 Public Property Get FirstDataRow() As Integer
     FirstDataRow = Me.HeaderRows + Me.BannerLevels * 2 + 2
@@ -38,8 +50,20 @@ Public Property Get FirstDataColumn() As Integer
     FirstDataColumn = Me.TitleLevels * 2 + 1
 End Property
 
-Public Sub SetDataRanges()
+Public Sub Initialize(index As Range, ws As Worksheet)
 
+    Me.TableName = index.Columns(1)
+    Me.worksheetName = index.Columns(2)
+    Me.HeaderRows = index.Columns(3)
+    Me.TitleLevels = index.Columns(4)
+    Me.BannerLevels = index.Columns(5)
+    Me.BaseIn = index.Columns(6)
+    Me.SigTestVs = index.Columns(7)
+    Me.SigText = index.Columns(8)
+    Me.HasDelta = index.Columns(9)
+
+    Set Me.Worksheet = ws
+    
     Dim lastRow As Integer, lastColumn As Integer
     
     lastRow = Me.Worksheet.UsedRange.Rows.Count
@@ -66,6 +90,12 @@ Public Sub SetDataRanges()
     ElseIf Me.BaseIn = "SubTable" Then
         'All ranges are defined in subtable class
     End If
+    
+    If Me.HasDelta Then
+        Set Me.DeltaTable = New DeltaTable
+        Me.DeltaTable.Initialize Me
+    End If
+    
 End Sub
 
 Public Sub InsertNewRows()
@@ -115,6 +145,8 @@ Public Sub SetupSubTables()
         Next
         
     End If
+    
+    If Me.HasDelta Then Me.DeltaTable.SetupSubTables
 
 End Sub
 
@@ -135,10 +167,13 @@ Public Sub PreFormatting()
     Me.BannerRange.Font.Size = 8
     Me.BannerRange.Font.Bold = False
     Me.BannerRange.Rows.AutoFit
+    Me.BannerRange.WrapText = True
     Me.BannerRange.HorizontalAlignment = xlCenter
         
     Me.DataRange.HorizontalAlignment = xlCenter
     Me.DataRange.Replace What:="XXXXX", Replacement:="n.a."
+    
+    If Me.HasDelta Then Me.DeltaTable.PreFormatting
     
 End Sub
 
@@ -161,9 +196,9 @@ Public Sub WriteLegend()
     End If
     
     If Me.SigTestVs <> "" Then
-        LegendRange.Rows(3).FormulaR1C1 = "x% = significantly higher than Total Genpop Sample (95% confidence)"
+        LegendRange.Rows(3).FormulaR1C1 = Replace(Me.SigText, "(higher/lower)", "higher")
         LegendRange.Rows(3).Font.Color = Globals.ColorSignificantlyHigher
-        LegendRange.Rows(4).FormulaR1C1 = "x% = significantly lower than Total Genpop Sample (95% confidence)"
+        LegendRange.Rows(4).FormulaR1C1 = Replace(Me.SigText, "(higher/lower)", "lower")
         LegendRange.Rows(4).Font.Color = Globals.ColorSignificantlyLower
     End If
     
@@ -180,9 +215,11 @@ Public Sub HighlightBases()
         HighlightBaseRange Me.BaseRange
     End If
     
+    If Me.HasDelta Then Me.DeltaTable.HighlightBases
+    
 End Sub
 
-Private Sub HighlightBaseRange(rg As Range)
+Public Sub HighlightBaseRange(rg As Range)
     Dim c As Range
     For Each c In rg.Cells
         If c < Globals.BaseLow Then c.Interior.Color = Globals.ColorBaseLow
@@ -202,6 +239,8 @@ Public Sub HighlightSignificances()
             st.HighlightSignificances
         Next st
     End If
+    
+    If Me.HasDelta Then Me.DeltaTable.HighlightSignificances
     
 End Sub
 
@@ -238,7 +277,6 @@ Private Sub HighlightSignficancesVsRef()
     
 End Sub
 
-
 Public Sub PostFormatting()
 
     If Me.SigTestVs = "All" Then
@@ -252,5 +290,37 @@ Public Sub PostFormatting()
             c.EntireRow.Font.Color = rgbGrey
         End If
     Next c
+    
+    If Me.HasDelta Then Me.DeltaTable.CalculateDeltas
+    
+    FixWindow
+    
+End Sub
+
+Private Sub FixWindow()
+
+    Dim rowToFix As Integer, columnToFix As Integer
+    
+    If Me.BaseIn = "SubTable" And Me.SigTestVs = "Ref" Then
+        'ohne basen mit ref
+        rowToFix = Me.DataRange.Rows(1).Row
+        columnToFix = Me.DataRange.Columns(1).Column + 1
+    ElseIf Me.BaseIn = "SubTable" And Me.SigTestVs <> "Ref" Then
+        'ohne basen ohne ref
+        rowToFix = Me.DataRange.Rows(1).Row
+        columnToFix = Me.DataRange.Columns(1).Column
+    ElseIf Me.SigTestVs = "Ref" Then
+        'mit basen mit ref
+        rowToFix = Me.BaseRange.Row + 1
+        columnToFix = Me.ReferenceRange.Column + 1
+    ElseIf Me.SigTestVs <> "Ref" Then
+        'mit basen ohne ref
+        rowToFix = Me.DataRange.Rows(1).Row + 1
+        columnToFix = Me.DataRange.Columns(1).Column
+    End If
+
+    Me.Worksheet.Select
+    Me.Worksheet.Cells(rowToFix, columnToFix).Select
+    ActiveWindow.FreezePanes = True
     
 End Sub

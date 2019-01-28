@@ -6,21 +6,14 @@ Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As D
     'n1 - base 1, x1 - value 1, n2 = base 2, x2 - value 2
     'x1 and x2 values should be between 0 and 1, for example 45%
     If x1 < 0 Or x1 > 1 Or x2 < 0 Or x2 > 1 Then
-        Err.Raise Globals.GetProbabilityParameterErrorCode, "Error in Statistics module", "Parameter validation error at Statistics.GetPValue"
+        Err.Raise Globals.GetProbabilityParameterErrorCode, "Error in Statistics module", "Parameter validation error at Statistics.GetProbability"
     End If
     
     'Special cases resulting in errors -> should be NOT significant
-    If x1 + x2 = 0 Or x1 = x2 Or n1 < Globals.BaseTooLow Or n2 < Globals.BaseTooLow Then  'not significant
+    If x1 + x2 = 0 Or x1 = x2 Or n1 < Globals.BaseTooLow Or n2 < Globals.BaseTooLow Or (x1 = 1 And x2 = 0) Or (x1 = 0 And x2 = 1) Then  'not significant
         GetProbability = 1
         Exit Function
     End If
-
-    'A special case resulting in division by zero -> should be significcant
-    If (x1 = 1 And x2 = 0) Or (x1 = 0 And x2 = 1) Then
-        GetProbability = 0
-        Exit Function
-    End If
-    
     
     Dim a As Double, b As Double, c As Double, d As Double, f As Double, x As Double
 
@@ -32,6 +25,32 @@ Public Function GetProbability(n1 As Double, x1 As Double, n2 As Double, x2 As D
     x = Abs(a * b / Sqr((c + d) / f))
     
     GetProbability = WorksheetFunction.T_Dist_2T(x, f)
+
+End Function
+
+Public Function GetProbabilityRef(n1 As Double, x1 As Double, ref As Double) As Double
+
+    'n1 - base 1, x1 - value 1, n2 = base 2, x2 - value 2
+    'x1 and x2 values should be between 0 and 1, for example 45%
+    If x1 < 0 Or x1 > 1 Or ref < 0 Or ref > 1 Then
+        Err.Raise Globals.GetProbabilityParameterErrorCode, "Error in Statistics module", "Parameter validation error at Statistics.GetProbabilityRef"
+    End If
+    
+    'Special cases resulting in errors -> should be NOT significant
+    If x1 = ref Or x1 = 1 Or x1 = 0 Or n1 < Globals.BaseTooLow Then    'not significant
+        GetProbabilityRef = 1
+        Exit Function
+    End If
+
+    Dim a As Double, b As Double, f As Double, x As Double
+
+    a = x1 - ref
+    b = x1 * (1 - x1)
+    f = n1 - 1
+    x = Abs(a / Sqr(b / f))
+    
+    'TDIST(ABS((x1-x2)/SQRT(x1*(1-x1)/(n1-1)));(n1-1);2)
+    GetProbabilityRef = WorksheetFunction.T_Dist_2T(x, f)
 
 End Function
 

@@ -3,7 +3,7 @@ Option Explicit
 
 'GLOBAL SETTINGS
 
-Public Const TableCount As Integer = 41
+Public Const TableCount As Integer = 47
 
 Public Const BaseLow As Integer = 80
 Public Const BaseTooLow As Integer = 60
@@ -22,7 +22,5 @@ Public Const DataRangeErrorCode As Integer = 1003
 Public Const Font As String = "Arial Narrow"
 Public Const TableNameCellAddress As String = "A2"
 
-'GLOBAL UTILITIES
-
-Public Letters(1 To 52) As String 'Array with letters used for identifying columns for significance test
+Public Letters(1 To 52) As String
 
